@@ -1,0 +1,3 @@
+Meridian Labs developed the Atlas Sensor for the Aster Program. The Atlas Sensor sends measurements to Zephyr Station. Zephyr Station forwards processed observations to Helios Research Institute. Meridian Labs maintains the sensor calibration archive.
+
+In March 2024, Meridian Labs delivered the third Atlas Sensor to Zephyr Station. The delivery replaced the prototype sensor used in 2023.

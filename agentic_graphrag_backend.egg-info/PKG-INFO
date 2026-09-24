@@ -1,0 +1,68 @@
+Metadata-Version: 2.4
+Name: agentic-graphrag-backend
+Version: 0.1.0
+Summary: Backend for an Agentic GraphRAG intelligence system
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.110.0
+Requires-Dist: uvicorn[standard]>=0.29.0
+Requires-Dist: pydantic>=2.7.0
+Requires-Dist: pydantic-settings>=2.2.1
+Requires-Dist: python-dotenv>=1.0.1
+Requires-Dist: httpx>=0.27.0
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: qdrant-client>=1.8.2
+Requires-Dist: neo4j>=5.18.0
+Requires-Dist: psycopg[binary]>=3.2.1
+Requires-Dist: pypdf>=4.2.0
+Requires-Dist: python-docx>=1.1.0
+Requires-Dist: beautifulsoup4>=4.12.3
+Requires-Dist: markdown>=3.0.1
+Requires-Dist: pytest>=8.2.0
+Requires-Dist: pytest-asyncio>=0.23.0
+
+# Agentic GraphRAG Backend
+
+This repository contains the backend scaffold for the system described in the project brief. It follows the layered architecture required for real multi-mode comparison between traditional RAG, GraphRAG, and Agentic GraphRAG.
+
+## Current status
+
+This is an initial working scaffold for the backend foundation, not a complete production deployment. It includes:
+
+- FastAPI application bootstrap
+- Environment-based configuration
+- Domain and API schema models
+- HTTP routes for health, documents, queries, graph, evaluation, and metrics
+- Service layer boundaries for ingestion, RAG, GraphRAG, Agentic GraphRAG, and benchmarking
+- Prompt files for grounded generation
+- Docker and environment setup
+- Initial smoke tests
+
+## Backend architecture
+
+- api/routes: HTTP handlers
+- services: ingestion, rag, graphrag, agentic, evaluation, metrics
+- repositories: storage abstractions for documents, graph, and vectors
+- models/schemas: domain and API models
+- llm: provider abstraction and prompts
+- core: configuration, logging, exceptions
+
+## Run locally
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload
+```
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+## Notes
+
+The project deliberately separates modes so they can be benchmarked on the same corpus and query set without sharing implementation shortcuts.

@@ -1,0 +1,3 @@
+Celeste Analytics analyzed the observations from Zephyr Station and the Atlas Sensor. Celeste Analytics concluded that the Lumen Shelf is the most methane-rich area in the Nereid Basin. Helios Research Institute used the conclusion to prioritize another Aster Program survey.
+
+The causal chain recorded in the report is: Atlas Sensor measurements enabled Zephyr Station processing; Zephyr Station processing enabled the Lumen Shelf map; the map caused the next survey to prioritize the Lumen Shelf.

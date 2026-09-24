@@ -1,0 +1,973 @@
+{
+    "dataset_version": "benchmark-v1.0",
+    "description": "Constructed synthetic benchmark corpus for evaluation; not real-world data.",
+    "corpus_documents": [
+        "01_program_brief.txt",
+        "02_meridian_atlas.txt",
+        "03_zephyr_nereid.txt",
+        "04_celeste_analysis.txt",
+        "05_license_record.txt",
+        "06_counter_record.txt"
+    ],
+    "questions": [
+        {
+            "id": "f01",
+            "question": "Who leads the Aster Program?",
+            "category": "factual",
+            "expected_answer": "Helios Research Institute leads the Aster Program.",
+            "required_entities": [
+                "Helios Research Institute",
+                "Aster Program"
+            ],
+            "required_relationships": [
+                "Helios Research Institute -> LEADS -> Aster Program"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Helios Research Institute."
+            ]
+        },
+        {
+            "id": "f02",
+            "question": "What does the Aster Program study?",
+            "category": "factual",
+            "expected_answer": "The Aster Program studies the Nereid Basin.",
+            "required_entities": [
+                "Aster Program",
+                "Nereid Basin"
+            ],
+            "required_relationships": [
+                "Aster Program -> STUDIES -> Nereid Basin"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "The Nereid Basin."
+            ]
+        },
+        {
+            "id": "f03",
+            "question": "What did Meridian Labs develop?",
+            "category": "factual",
+            "expected_answer": "Meridian Labs developed the Atlas Sensor.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> DEVELOPED -> Atlas Sensor"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "The Atlas Sensor."
+            ]
+        },
+        {
+            "id": "f04",
+            "question": "What does Zephyr Station monitor?",
+            "category": "factual",
+            "expected_answer": "Zephyr Station monitors the Nereid Basin.",
+            "required_entities": [
+                "Zephyr Station",
+                "Nereid Basin"
+            ],
+            "required_relationships": [
+                "Zephyr Station -> MONITORS -> Nereid Basin"
+            ],
+            "gold_sources": [
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "The Nereid Basin."
+            ]
+        },
+        {
+            "id": "f05",
+            "question": "Which area has the highest methane readings?",
+            "category": "factual",
+            "expected_answer": "The Lumen Shelf has the highest methane readings.",
+            "required_entities": [
+                "Lumen Shelf",
+                "Nereid Basin"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "03_zephyr_nereid.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Lumen Shelf."
+            ]
+        },
+        {
+            "id": "f06",
+            "question": "How many field units did the license cover?",
+            "category": "factual",
+            "expected_answer": "The license covered three field units.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Helios Research Institute"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "05_license_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Three."
+            ]
+        },
+        {
+            "id": "d01",
+            "question": "Which document says the program was approved in 2022?",
+            "category": "document_lookup",
+            "expected_answer": "The program brief says the Aster Program was approved in 2022.",
+            "required_entities": [
+                "Aster Program"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "01_program_brief.txt."
+            ]
+        },
+        {
+            "id": "d02",
+            "question": "Where is the March 2024 sensor delivery recorded?",
+            "category": "document_lookup",
+            "expected_answer": "The Meridian Atlas document records it.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "02_meridian_atlas.txt."
+            ]
+        },
+        {
+            "id": "d03",
+            "question": "Which document describes methane signatures?",
+            "category": "document_lookup",
+            "expected_answer": "The Zephyr Nereid document describes them.",
+            "required_entities": [
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "03_zephyr_nereid.txt."
+            ]
+        },
+        {
+            "id": "d04",
+            "question": "Which document records the causal chain behind the next survey?",
+            "category": "document_lookup",
+            "expected_answer": "The Celeste analysis records it.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "04_celeste_analysis.txt."
+            ]
+        },
+        {
+            "id": "d05",
+            "question": "Which document says Helios was a licensee?",
+            "category": "document_lookup",
+            "expected_answer": "The 2024 license record says so.",
+            "required_entities": [
+                "Helios Research Institute",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "05_license_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "05_license_record.txt."
+            ]
+        },
+        {
+            "id": "d06",
+            "question": "Which document disputes the Helios license?",
+            "category": "document_lookup",
+            "expected_answer": "The counter-record disputes it.",
+            "required_entities": [
+                "Nova Dynamics",
+                "Helios Research Institute"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "06_counter_record.txt."
+            ]
+        },
+        {
+            "id": "e01",
+            "question": "What organization supplies the Atlas Sensor?",
+            "category": "entity",
+            "expected_answer": "Meridian Labs.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> SUPPLIES -> Atlas Sensor"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian Labs supplies it."
+            ]
+        },
+        {
+            "id": "e02",
+            "question": "What station receives the third Atlas Sensor?",
+            "category": "entity",
+            "expected_answer": "Zephyr Station.",
+            "required_entities": [
+                "Zephyr Station",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Atlas Sensor -> DELIVERED_TO -> Zephyr Station"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Zephyr Station receives it."
+            ]
+        },
+        {
+            "id": "e03",
+            "question": "Who reviewed the Lumen Shelf findings?",
+            "category": "entity",
+            "expected_answer": "Meridian Labs.",
+            "required_entities": [
+                "Meridian Labs",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> REVIEWS -> findings"
+            ],
+            "gold_sources": [
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian Labs reviewed them."
+            ]
+        },
+        {
+            "id": "e04",
+            "question": "Which organization analyzed the observations?",
+            "category": "entity",
+            "expected_answer": "Celeste Analytics.",
+            "required_entities": [
+                "Celeste Analytics",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Celeste Analytics -> ANALYZES -> observations"
+            ],
+            "gold_sources": [
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Celeste Analytics."
+            ]
+        },
+        {
+            "id": "e05",
+            "question": "Which company is named as the alternative licensee?",
+            "category": "entity",
+            "expected_answer": "Nova Dynamics.",
+            "required_entities": [
+                "Nova Dynamics",
+                "Meridian Labs"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> LICENSES -> Nova Dynamics"
+            ],
+            "gold_sources": [
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Nova Dynamics."
+            ]
+        },
+        {
+            "id": "e06",
+            "question": "Which institute operates the Aster Program?",
+            "category": "entity",
+            "expected_answer": "Helios Research Institute.",
+            "required_entities": [
+                "Helios Research Institute",
+                "Aster Program"
+            ],
+            "required_relationships": [
+                "Helios Research Institute -> OPERATES -> Aster Program"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Helios Research Institute."
+            ]
+        },
+        {
+            "id": "r01",
+            "question": "What is the relationship between Meridian Labs and Atlas Sensor?",
+            "category": "relationship",
+            "expected_answer": "Meridian Labs developed and supplies the Atlas Sensor.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> DEVELOPED -> Atlas Sensor",
+                "Meridian Labs -> SUPPLIES -> Atlas Sensor"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian developed the Atlas Sensor."
+            ]
+        },
+        {
+            "id": "r02",
+            "question": "What is the relationship between Atlas Sensor and Zephyr Station?",
+            "category": "relationship",
+            "expected_answer": "The Atlas Sensor sends measurements to Zephyr Station.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station"
+            ],
+            "required_relationships": [
+                "Atlas Sensor -> SENDS_MEASUREMENTS_TO -> Zephyr Station"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "The sensor sends measurements there."
+            ]
+        },
+        {
+            "id": "r03",
+            "question": "What is the relationship between Zephyr Station and Nereid Basin?",
+            "category": "relationship",
+            "expected_answer": "Zephyr Station monitors the Nereid Basin.",
+            "required_entities": [
+                "Zephyr Station",
+                "Nereid Basin"
+            ],
+            "required_relationships": [
+                "Zephyr Station -> MONITORS -> Nereid Basin"
+            ],
+            "gold_sources": [
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "It monitors the basin."
+            ]
+        },
+        {
+            "id": "r04",
+            "question": "What is the relationship between Lumen Shelf and Nereid Basin?",
+            "category": "relationship",
+            "expected_answer": "The Lumen Shelf is within the Nereid Basin.",
+            "required_entities": [
+                "Lumen Shelf",
+                "Nereid Basin"
+            ],
+            "required_relationships": [
+                "Lumen Shelf -> PART_OF -> Nereid Basin"
+            ],
+            "gold_sources": [
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Lumen Shelf is in the basin."
+            ]
+        },
+        {
+            "id": "r05",
+            "question": "What is the relationship between Celeste Analytics and Lumen Shelf?",
+            "category": "relationship",
+            "expected_answer": "Celeste identified the Lumen Shelf as most methane-rich.",
+            "required_entities": [
+                "Celeste Analytics",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Celeste Analytics -> IDENTIFIES -> Lumen Shelf"
+            ],
+            "gold_sources": [
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Celeste analyzed Lumen Shelf."
+            ]
+        },
+        {
+            "id": "r06",
+            "question": "What does the license record claim about Meridian and Helios?",
+            "category": "relationship",
+            "expected_answer": "It claims Meridian licensed the design to Helios.",
+            "required_entities": [
+                "Meridian Labs",
+                "Helios Research Institute",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> LICENSES -> Helios Research Institute"
+            ],
+            "gold_sources": [
+                "05_license_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian licensed Helios."
+            ]
+        },
+        {
+            "id": "r07",
+            "question": "What does the counter-record claim about Meridian and Nova?",
+            "category": "relationship",
+            "expected_answer": "It claims Meridian licensed the design to Nova Dynamics.",
+            "required_entities": [
+                "Meridian Labs",
+                "Nova Dynamics",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> LICENSES -> Nova Dynamics"
+            ],
+            "gold_sources": [
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Nova received the license."
+            ]
+        },
+        {
+            "id": "r08",
+            "question": "What does the counter-record claim about Meridian and Helios?",
+            "category": "relationship",
+            "expected_answer": "It claims Meridian did not license the design to Helios.",
+            "required_entities": [
+                "Meridian Labs",
+                "Helios Research Institute",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> NOT_LICENSED_TO -> Helios Research Institute"
+            ],
+            "gold_sources": [
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "It denies a Helios license."
+            ]
+        },
+        {
+            "id": "m01",
+            "question": "How are Atlas Sensor measurements connected to the Lumen Shelf map?",
+            "category": "multi_hop",
+            "expected_answer": "Measurements go through Zephyr processing, enabling the Lumen Shelf map.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Atlas Sensor -> Zephyr Station -> Lumen Shelf"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Atlas Sensor -> Zephyr Station -> Lumen Shelf."
+            ]
+        },
+        {
+            "id": "m02",
+            "question": "What path connects Meridian Labs to Lumen Shelf?",
+            "category": "multi_hop",
+            "expected_answer": "Meridian connects through Atlas Sensor and Zephyr Station to Lumen Shelf.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> Atlas Sensor -> Zephyr Station -> Lumen Shelf"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "02_meridian_atlas.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian -> Atlas -> Zephyr -> Lumen."
+            ]
+        },
+        {
+            "id": "m03",
+            "question": "How did the Atlas Sensor contribute to the survey priority?",
+            "category": "multi_hop",
+            "expected_answer": "It enabled processing and mapping, causing Lumen Shelf to be prioritized.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Atlas Sensor -> ENABLES -> map -> CAUSES -> priority"
+            ],
+            "gold_sources": [
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Measurements led to the priority."
+            ]
+        },
+        {
+            "id": "m04",
+            "question": "How does Meridian connect to Helios through the Aster Program?",
+            "category": "multi_hop",
+            "expected_answer": "Meridian supplies the sensor used by the program led by Helios.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor",
+                "Aster Program",
+                "Helios Research Institute"
+            ],
+            "required_relationships": [
+                "Meridian -> Atlas Sensor -> Aster Program -> Helios"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian -> Atlas -> Aster -> Helios."
+            ]
+        },
+        {
+            "id": "m05",
+            "question": "Which chain links Zephyr observations to Helios's survey decision?",
+            "category": "multi_hop",
+            "expected_answer": "Observations produced the Lumen map, which Helios used to prioritize another survey.",
+            "required_entities": [
+                "Zephyr Station",
+                "Lumen Shelf",
+                "Helios Research Institute"
+            ],
+            "required_relationships": [
+                "Zephyr -> map -> Helios survey"
+            ],
+            "gold_sources": [
+                "03_zephyr_nereid.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Zephyr -> Lumen map -> Helios survey."
+            ]
+        },
+        {
+            "id": "m06",
+            "question": "What two-hop path connects Atlas Sensor to Nereid Basin?",
+            "category": "multi_hop",
+            "expected_answer": "Atlas sends measurements to Zephyr, which monitors Nereid Basin.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Nereid Basin"
+            ],
+            "required_relationships": [
+                "Atlas Sensor -> Zephyr -> Nereid Basin"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt",
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Atlas -> Zephyr -> Nereid."
+            ]
+        },
+        {
+            "id": "m07",
+            "question": "How is Celeste Analytics connected to the Aster Program?",
+            "category": "multi_hop",
+            "expected_answer": "Celeste analyzes observations and Helios uses its conclusion for the program survey.",
+            "required_entities": [
+                "Celeste Analytics",
+                "Helios Research Institute",
+                "Aster Program"
+            ],
+            "required_relationships": [
+                "Celeste -> conclusion -> Helios -> Aster"
+            ],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Celeste's analysis informs the program."
+            ]
+        },
+        {
+            "id": "m08",
+            "question": "Which documents resolve the sensor-to-survey chain?",
+            "category": "multi_hop",
+            "expected_answer": "Meridian Atlas, Zephyr Nereid, and Celeste Analysis together resolve it.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Atlas Sensor -> Zephyr -> Lumen Shelf"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt",
+                "03_zephyr_nereid.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "02, 03, and 04."
+            ]
+        },
+        {
+            "id": "t01",
+            "question": "When was the Aster Program approved?",
+            "category": "temporal",
+            "expected_answer": "2022.",
+            "required_entities": [
+                "Aster Program"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "The program was approved in 2022."
+            ]
+        },
+        {
+            "id": "t02",
+            "question": "When did observations expand?",
+            "category": "temporal",
+            "expected_answer": "2024.",
+            "required_entities": [
+                "Aster Program",
+                "Nereid Basin"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "01_program_brief.txt"
+            ],
+            "acceptable_answer_variants": [
+                "In 2024."
+            ]
+        },
+        {
+            "id": "t03",
+            "question": "When was the third sensor delivered?",
+            "category": "temporal",
+            "expected_answer": "March 2024.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "In March 2024."
+            ]
+        },
+        {
+            "id": "t04",
+            "question": "Which sensor was replaced?",
+            "category": "temporal",
+            "expected_answer": "The prototype sensor used in 2023.",
+            "required_entities": [
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "third unit -> REPLACES -> prototype"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "The 2023 prototype."
+            ]
+        },
+        {
+            "id": "t05",
+            "question": "What changed after the 2024 expansion?",
+            "category": "temporal",
+            "expected_answer": "Zephyr recorded methane and water-vapor signatures at Lumen Shelf.",
+            "required_entities": [
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "03_zephyr_nereid.txt"
+            ],
+            "acceptable_answer_variants": [
+                "It recorded methane and water-vapor signatures."
+            ]
+        },
+        {
+            "id": "c01",
+            "question": "Compare the program brief and Meridian Atlas document.",
+            "category": "comparison",
+            "expected_answer": "The brief is program-level; Meridian Atlas covers sensor delivery and processing.",
+            "required_entities": [
+                "Aster Program",
+                "Atlas Sensor",
+                "Zephyr Station"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Program scope versus sensor infrastructure."
+            ]
+        },
+        {
+            "id": "c02",
+            "question": "Compare the Zephyr and Celeste findings.",
+            "category": "comparison",
+            "expected_answer": "Zephyr reports signatures; Celeste ranks Lumen Shelf as most methane-rich.",
+            "required_entities": [
+                "Zephyr Station",
+                "Lumen Shelf",
+                "Celeste Analytics"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "03_zephyr_nereid.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Signatures versus ranking."
+            ]
+        },
+        {
+            "id": "c03",
+            "question": "Compare the two license records.",
+            "category": "comparison",
+            "expected_answer": "One says Helios received the license; the other denies that and names Nova Dynamics.",
+            "required_entities": [
+                "Helios Research Institute",
+                "Nova Dynamics",
+                "Meridian Labs"
+            ],
+            "required_relationships": [
+                "conflicting license claims"
+            ],
+            "gold_sources": [
+                "05_license_record.txt",
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "They conflict over the licensee."
+            ]
+        },
+        {
+            "id": "c04",
+            "question": "Which document is more specific about delivery timing?",
+            "category": "comparison",
+            "expected_answer": "Meridian Atlas, because it gives March 2024 and the third unit.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Meridian Atlas."
+            ]
+        },
+        {
+            "id": "c05",
+            "question": "Compare the organizations' roles.",
+            "category": "comparison",
+            "expected_answer": "Helios leads, Meridian supplies, Zephyr monitors, and Celeste analyzes.",
+            "required_entities": [
+                "Helios Research Institute",
+                "Meridian Labs",
+                "Zephyr Station",
+                "Celeste Analytics"
+            ],
+            "required_relationships": [],
+            "gold_sources": [
+                "01_program_brief.txt",
+                "02_meridian_atlas.txt",
+                "03_zephyr_nereid.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Helios leads; Meridian supplies; Zephyr monitors; Celeste analyzes."
+            ]
+        },
+        {
+            "id": "cause01",
+            "question": "Why was Lumen Shelf prioritized?",
+            "category": "cause_effect",
+            "expected_answer": "Celeste identified it as most methane-rich.",
+            "required_entities": [
+                "Celeste Analytics",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "finding -> CAUSES -> survey priority"
+            ],
+            "gold_sources": [
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Because it was most methane-rich."
+            ]
+        },
+        {
+            "id": "cause02",
+            "question": "What enabled the Lumen Shelf map?",
+            "category": "cause_effect",
+            "expected_answer": "Atlas observations processed by Zephyr enabled it.",
+            "required_entities": [
+                "Atlas Sensor",
+                "Zephyr Station",
+                "Lumen Shelf"
+            ],
+            "required_relationships": [
+                "Atlas -> processing -> map"
+            ],
+            "gold_sources": [
+                "03_zephyr_nereid.txt",
+                "04_celeste_analysis.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Sensor observations and station processing."
+            ]
+        },
+        {
+            "id": "cause03",
+            "question": "Why was a third sensor delivered?",
+            "category": "cause_effect",
+            "expected_answer": "It replaced the 2023 prototype.",
+            "required_entities": [
+                "Meridian Labs",
+                "Atlas Sensor",
+                "Zephyr Station"
+            ],
+            "required_relationships": [
+                "third unit -> REPLACES -> prototype"
+            ],
+            "gold_sources": [
+                "02_meridian_atlas.txt"
+            ],
+            "acceptable_answer_variants": [
+                "To replace the prototype."
+            ]
+        },
+        {
+            "id": "conf01",
+            "question": "Did Meridian license the design to Helios?",
+            "category": "conflict",
+            "expected_answer": "The sources conflict: one says yes and the counter-record says no.",
+            "required_entities": [
+                "Meridian Labs",
+                "Helios Research Institute",
+                "Atlas Sensor"
+            ],
+            "required_relationships": [
+                "LICENSES and NOT_LICENSED_TO claims"
+            ],
+            "gold_sources": [
+                "05_license_record.txt",
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Conflicting evidence."
+            ]
+        },
+        {
+            "id": "conf02",
+            "question": "Who does the counter-record name as licensee?",
+            "category": "conflict",
+            "expected_answer": "Nova Dynamics.",
+            "required_entities": [
+                "Nova Dynamics",
+                "Meridian Labs"
+            ],
+            "required_relationships": [
+                "Meridian Labs -> LICENSES -> Nova Dynamics"
+            ],
+            "gold_sources": [
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Nova Dynamics."
+            ]
+        },
+        {
+            "id": "conf03",
+            "question": "Which license claim should be accepted?",
+            "category": "conflict",
+            "expected_answer": "Neither should be silently preferred; report both as conflicting evidence.",
+            "required_entities": [
+                "Helios Research Institute",
+                "Nova Dynamics"
+            ],
+            "required_relationships": [
+                "conflicting license claims"
+            ],
+            "gold_sources": [
+                "05_license_record.txt",
+                "06_counter_record.txt"
+            ],
+            "acceptable_answer_variants": [
+                "Report the conflict."
+            ]
+        }
+    ]
+}
