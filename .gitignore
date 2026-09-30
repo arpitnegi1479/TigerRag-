@@ -4,3 +4,17 @@ __pycache__/
 .env
 *.pyc
 .DS_Store
+# Python build artifacts
+*.egg-info/
+build/
+dist/
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables & secrets
+.env

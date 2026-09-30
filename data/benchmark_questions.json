@@ -509,6 +509,7 @@
             ],
             "gold_sources": [
                 "02_meridian_atlas.txt",
+                "03_zephyr_nereid.txt",
                 "04_celeste_analysis.txt"
             ],
             "acceptable_answer_variants": [
@@ -532,6 +533,7 @@
             "gold_sources": [
                 "01_program_brief.txt",
                 "02_meridian_atlas.txt",
+                "03_zephyr_nereid.txt",
                 "04_celeste_analysis.txt"
             ],
             "acceptable_answer_variants": [
@@ -552,6 +554,8 @@
                 "Atlas Sensor -> ENABLES -> map -> CAUSES -> priority"
             ],
             "gold_sources": [
+                "02_meridian_atlas.txt",
+                "03_zephyr_nereid.txt",
                 "04_celeste_analysis.txt"
             ],
             "acceptable_answer_variants": [
@@ -882,6 +886,7 @@
                 "Atlas -> processing -> map"
             ],
             "gold_sources": [
+                "02_meridian_atlas.txt",
                 "03_zephyr_nereid.txt",
                 "04_celeste_analysis.txt"
             ],
@@ -943,6 +948,7 @@
                 "Meridian Labs -> LICENSES -> Nova Dynamics"
             ],
             "gold_sources": [
+                "05_license_record.txt",
                 "06_counter_record.txt"
             ],
             "acceptable_answer_variants": [

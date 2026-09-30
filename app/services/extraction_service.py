@@ -105,7 +105,12 @@ CHUNK:
                 except (ValidationError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
                     logger.warning("Structured graph extraction validation failed (attempt %s/2): %s", attempt + 1, exc)
                 except Exception as exc:
-                    logger.warning("Structured graph extraction provider failed: %s", exc)
+                    status_code = getattr(getattr(exc, "response", None), "status_code", None)
+                    logger.warning(
+                        "Structured graph extraction provider failed (%s, status=%s)",
+                        type(exc).__name__,
+                        status_code,
+                    )
                     break
         return self._heuristic_fallback(document_id, chunk_id, text)
 

@@ -1,3 +1,5 @@
+import pytest
+
 from app.repositories.graph_repository import GraphRepository
 from app.schemas.api import EvidenceStatus
 from app.services.graphrag_service import GraphRagService
@@ -71,6 +73,68 @@ def test_graph_repository_clear_resets_in_memory_state():
     assert repo.list_entities() == []
     assert repo._memory_relationships == []
     assert repo.get_entity_by_name("Alpha") is None
+
+
+def test_graph_repository_clear_refuses_live_graph(monkeypatch):
+    repo = GraphRepository(backend="memory")
+    repo.upsert_entity({"id": "entity:protected", "canonical_name": "Protected", "type": "PERSON"})
+    monkeypatch.setattr(GraphRepository, "is_live", property(lambda self: True))
+
+    with pytest.raises(RuntimeError, match="Refusing to clear a live Neo4j graph"):
+        repo.clear()
+
+    assert "entity:protected" in repo._memory_nodes
+
+
+def test_delete_relationships_for_documents_keeps_other_sources():
+    repo = GraphRepository(backend="memory")
+    for entity_id, name in (("entity:alpha", "Alpha"), ("entity:beta", "Beta"), ("entity:gamma", "Gamma")):
+        repo.upsert_entity({"id": entity_id, "canonical_name": name, "type": "PERSON"})
+    repo.add_relationship("entity:alpha", "entity:beta", "RELATED_TO", source_document_id="benchmark.txt")
+    repo.add_relationship("entity:beta", "entity:gamma", "RELATED_TO", source_document_id="other.txt")
+
+    deleted_count = repo.delete_relationships_for_documents(["benchmark.txt"])
+
+    assert deleted_count == 1
+    assert [item["source_document_id"] for item in repo.list_relationships()] == ["other.txt"]
+
+
+def test_list_annotated_relationships_returns_only_marked_edges():
+    repo = GraphRepository(backend="memory")
+    for entity_id, name in (("entity:alpha", "Alpha"), ("entity:beta", "Beta"), ("entity:gamma", "Gamma")):
+        repo.upsert_entity({"id": entity_id, "canonical_name": name, "type": "PERSON"})
+    repo.add_relationship("entity:alpha", "entity:beta", "RELATED_TO", source_document_id="gold.txt", metadata={"benchmark_annotation": True})
+    repo.add_relationship("entity:beta", "entity:gamma", "RELATED_TO", source_document_id="noise.txt")
+
+    annotations = repo.list_annotated_relationships()
+
+    assert len(annotations) == 1
+    assert annotations[0]["source_document_id"] == "gold.txt"
+    assert annotations[0]["metadata"]["benchmark_annotation"] is True
+
+
+def test_delete_orphan_entities_only_removes_unconnected_source_entities():
+    repo = GraphRepository(backend="memory")
+    for entity_id, name, document_id in (
+        ("entity:orphan", "Orphan", "benchmark.txt"),
+        ("entity:connected", "Connected", "benchmark.txt"),
+        ("entity:outside", "Outside", "other.txt"),
+    ):
+        repo.upsert_entity(
+            {
+                "id": entity_id,
+                "canonical_name": name,
+                "type": "PERSON",
+                "metadata": {"source_document_id": document_id},
+            }
+        )
+    repo.add_relationship("entity:connected", "entity:outside", "RELATED_TO", source_document_id="other.txt")
+
+    deleted_count = repo.delete_orphan_entities_for_documents(["benchmark.txt"])
+
+    assert deleted_count == 1
+    assert "entity:orphan" not in repo._memory_nodes
+    assert "entity:connected" in repo._memory_nodes
 
 
 def test_relationship_upsert_preserves_type_and_deduplicates_endpoint_pair():

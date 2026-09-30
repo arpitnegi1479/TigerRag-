@@ -3,10 +3,11 @@ from __future__ import annotations
 import re
 
 from app.llm.gemini import GeminiProvider
-from app.llm.prompts import GRAPHRAG_GROUNDED_PROMPT
+from app.llm.prompts import GRAPHRAG_GROUNDED_PROMPT, escape_untrusted_content
 from app.repositories.graph_repository import GraphRepository
 from app.schemas.api import Citation, EvidenceStatus, QueryMode, QueryResult, RetrievalStats
 from app.repositories.postgres_repository import PostgresDocumentRepository
+from app.services.evaluation_telemetry import evaluation_step, record_fallback
 from app.services.verification_service import VerificationService
 
 
@@ -143,9 +144,17 @@ class GraphRagService:
         answer_text = f"GraphRAG found a path from {start_name} to {end_name} via the graph: {' -> '.join(path)}."
         if self.provider.configured:
             try:
-                answer_text = self.provider.generate_text(GRAPHRAG_GROUNDED_PROMPT.format(query=query, evidence=evidence))
+                with evaluation_step("answer_generation"):
+                    answer_text = self.provider.generate_text(
+                        GRAPHRAG_GROUNDED_PROMPT.format(
+                            query=query,
+                            evidence=escape_untrusted_content(evidence),
+                        )
+                    )
             except Exception:
-                pass
+                record_fallback("answer_generation", "gemini_generation_failed")
+        else:
+            record_fallback("answer_generation", "gemini_not_configured")
         verification = self.verifier.verify_claim(answer_text, evidence)
         provenance_quality = sum(bool(item.get("document_id") and item.get("chunk_id")) for item in graph_path["evidence"]) / max(1, len(graph_path["evidence"]))
         relationship_signal = sum(float(item.get("score", 0.0)) for item in graph_path["evidence"]) / max(1, len(graph_path["evidence"]))

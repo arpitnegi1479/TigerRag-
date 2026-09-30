@@ -2,6 +2,7 @@ import httpx
 
 from app.core.config import settings
 from app.llm.providers import DeterministicEmbeddingProvider, GeminiEmbeddingProvider, ResilientEmbeddingProvider, get_embedding_provider
+from app.repositories.vector_repository import VectorRepository
 
 
 def test_gemini_embedding_provider_uses_native_endpoint_and_dimension(monkeypatch):
@@ -50,3 +51,20 @@ def test_resilient_embedding_provider_falls_back_after_provider_failure():
     assert len(vector) == 384
     assert provider.used_fallback is True
     assert provider.collection_name == "document_chunks_deterministic_384"
+
+
+def test_vector_repository_deletes_and_counts_only_requested_documents():
+    repository = VectorRepository()
+    repository.collections = {
+        "collection-a": [
+            {"document_id": "benchmark.txt"},
+            {"document_id": "benchmark.txt"},
+            {"document_id": "other.txt"},
+        ]
+    }
+
+    assert repository.count_documents(["benchmark.txt"]) == 2
+    assert repository.delete_documents(["benchmark.txt"]) == 2
+    assert repository.count_documents(["benchmark.txt"]) == 0
+    assert repository.count_documents(["other.txt"]) == 1
+    assert repository.count_points() == 1

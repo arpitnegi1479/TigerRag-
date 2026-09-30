@@ -115,6 +115,68 @@ class VectorRepository:
     def is_live(self) -> bool:
         return self._client is not None
 
+    def delete_documents(self, document_ids: list[str]) -> int:
+        scoped_ids = list(dict.fromkeys(document_ids))
+        if not scoped_ids:
+            return 0
+        if self._client is None:
+            deleted_count = 0
+            for collection, items in self.collections.items():
+                retained = [item for item in items if item.get("document_id") not in scoped_ids]
+                deleted_count += len(items) - len(retained)
+                self.collections[collection] = retained
+            return deleted_count
+
+        point_filter = models.Filter(
+            must=[models.FieldCondition(key="document_id", match=models.MatchAny(any=scoped_ids))]
+        )
+        deleted_count = 0
+        for collection in self._client.get_collections().collections:
+            count = self._client.count(
+                collection_name=collection.name,
+                count_filter=point_filter,
+                exact=True,
+            ).count
+            if count:
+                self._client.delete(
+                    collection_name=collection.name,
+                    points_selector=models.FilterSelector(filter=point_filter),
+                )
+                deleted_count += count
+        return deleted_count
+
+    def count_documents(self, document_ids: list[str]) -> int:
+        scoped_ids = list(dict.fromkeys(document_ids))
+        if not scoped_ids:
+            return 0
+        if self._client is None:
+            return sum(
+                1
+                for items in self.collections.values()
+                for item in items
+                if item.get("document_id") in scoped_ids
+            )
+
+        point_filter = models.Filter(
+            must=[models.FieldCondition(key="document_id", match=models.MatchAny(any=scoped_ids))]
+        )
+        return sum(
+            self._client.count(
+                collection_name=collection.name,
+                count_filter=point_filter,
+                exact=True,
+            ).count
+            for collection in self._client.get_collections().collections
+        )
+
+    def count_points(self) -> int:
+        if self._client is None:
+            return sum(len(items) for items in self.collections.values())
+        return sum(
+            self._client.count(collection_name=collection.name, exact=True).count
+            for collection in self._client.get_collections().collections
+        )
+
     def add_chunk_embedding(self, document_id: str, chunk_id: str, content: str, embedding: list[float], metadata: dict[str, Any] | None = None, collection: str = "document_chunks") -> dict[str, Any]:
         payload = {
             "document_id": document_id,

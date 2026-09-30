@@ -1,3 +1,5 @@
+import httpx
+
 from app.schemas.extraction import EntityType, RelationshipType
 from app.services.extraction_service import StructuredExtractionService
 
@@ -56,3 +58,23 @@ def test_schema_failure_falls_back_to_heuristic_extraction():
     assert result.relationships[0].type == RelationshipType.RELATED_TO
     assert result.relationships[0].confidence < 0.5
     assert result.relationships[0].source_document_id == "doc-3"
+
+
+def test_provider_failure_log_does_not_expose_request_url_credentials(caplog):
+    request = httpx.Request("POST", "https://example.test/generate?key=do-not-log")
+    response = httpx.Response(429, request=request)
+    failure = httpx.HTTPStatusError("quota exceeded", request=request, response=response)
+
+    class FailingProvider:
+        def generate_json(self, prompt, schema):
+            raise failure
+
+    with caplog.at_level("WARNING", logger="app.services.extraction_service"):
+        result = StructuredExtractionService(FailingProvider()).extract(
+            "doc-4", "doc-4-chunk-0", "Microsoft works with Azure."
+        )
+
+    assert result.relationships
+    assert "HTTPStatusError" in caplog.text
+    assert "status=429" in caplog.text
+    assert "do-not-log" not in caplog.text

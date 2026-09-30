@@ -9,10 +9,11 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.llm.gemini import GeminiProvider
-from app.llm.prompts import AGENT_DECISION_PROMPT
+from app.llm.prompts import AGENT_DECISION_PROMPT, escape_untrusted_content
 from app.schemas.agent import AgentAction, AgentDecision, AgentState, AgentToolCall
 from app.schemas.api import AgentStep, Citation, EvidenceStatus, QueryMode, QueryResult, RetrievalStats
 from app.services.agent_tools import AgentToolRegistry
+from app.services.evaluation_telemetry import evaluation_step, record_fallback
 from app.repositories.postgres_repository import PostgresDocumentRepository
 
 
@@ -55,17 +56,23 @@ class AgenticGraphRagService:
 
     def _model_decision(self, state: AgentState) -> AgentDecision | None:
         if not self.provider.configured:
+            record_fallback("agent_decision", "gemini_not_configured")
             return None
         try:
-            raw = self.provider.generate_json(
-                AGENT_DECISION_PROMPT.format(state=state.model_dump_json()),
-                self._decision_schema(),
-            )
+            with evaluation_step("agent_decision"):
+                raw = self.provider.generate_json(
+                    AGENT_DECISION_PROMPT.format(
+                        state=escape_untrusted_content(state.model_dump_json())
+                    ),
+                    self._decision_schema(),
+                )
             return AgentDecision.model_validate_json(raw)
         except (ValidationError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+            record_fallback("agent_decision", "invalid_gemini_decision")
             state.steps.append({"event": "invalid_decision_rejected"})
             return None
         except Exception:
+            record_fallback("agent_decision", "gemini_decision_failed")
             state.steps.append({"event": "decision_provider_failed"})
             return None
 

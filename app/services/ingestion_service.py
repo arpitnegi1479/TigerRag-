@@ -4,6 +4,7 @@ import io
 import logging
 from typing import Any
 
+from bs4 import BeautifulSoup
 from docx import Document as DocxDocument
 from pypdf import PdfReader
 
@@ -22,12 +23,28 @@ class IngestionService:
     """Service responsible for validating documents and preparing them for indexing."""
 
     def validate_file(self, filename: str, content_type: str | None = None, size_bytes: int | None = None) -> dict[str, Any]:
+        if not filename or filename in {".", ".."} or "/" in filename or "\\" in filename:
+            raise IngestionError("Filename must be a plain filename without path components.")
         extension = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
         allowed = {item.strip().lower() for item in settings.allowed_file_types.split(",") if item.strip()}
         clean_ext = f".{extension}"
 
         if clean_ext not in allowed:
             raise IngestionError(f"Unsupported file type: {filename}")
+
+        mime_types = {
+            ".pdf": {"application/pdf"},
+            ".txt": {"text/plain", "application/octet-stream"},
+            ".md": {"text/markdown", "text/x-markdown", "text/plain", "application/octet-stream"},
+            ".docx": {
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/octet-stream",
+            },
+            ".html": {"text/html", "application/xhtml+xml", "text/plain", "application/octet-stream"},
+        }
+        mime_type = (content_type or "").split(";", 1)[0].strip().lower()
+        if mime_type and mime_type not in mime_types.get(clean_ext, set()):
+            raise IngestionError("Content type does not match the supported file type.")
 
         if size_bytes is None:
             size_bytes = 0
@@ -44,9 +61,13 @@ class IngestionService:
         }
 
     def extract_text(self, file_bytes: bytes, extension: str) -> str:
-        if extension in {".txt", ".md", ".html"}:
+        if extension in {".txt", ".md"}:
             return file_bytes.decode("utf-8", errors="replace")
+        if extension == ".html":
+            return BeautifulSoup(file_bytes.decode("utf-8", errors="replace"), "html.parser").get_text("\n")
         if extension == ".pdf":
+            if b"%PDF-" not in file_bytes[:1024]:
+                raise IngestionError("Uploaded file is not a valid PDF.")
             reader = PdfReader(io.BytesIO(file_bytes))
             pages: list[str] = []
             for page in reader.pages:
@@ -159,7 +180,13 @@ class IngestionService:
 
     def process_upload(self, filename: str, file_bytes: bytes, content_type: str | None = None) -> dict[str, Any]:
         validated = self.validate_file(filename, content_type=content_type, size_bytes=len(file_bytes))
-        text = self.extract_text(file_bytes, validated["extension"])
+        try:
+            text = self.extract_text(file_bytes, validated["extension"])
+        except IngestionError:
+            raise
+        except Exception as exc:
+            logger.warning("Document extraction failed (%s)", type(exc).__name__)
+            raise IngestionError("Unable to parse uploaded document.") from exc
         chunks = self.chunk_text(text)
 
         vector_repository = VectorRepository.get_default()

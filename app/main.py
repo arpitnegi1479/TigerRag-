@@ -10,6 +10,7 @@ from app.api.routes.metrics import router as metrics_router
 from app.api.routes.queries import router as query_router
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.core.rate_limit import RateLimitMiddleware
 
 logger = setup_logging()
 
@@ -25,8 +26,13 @@ app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
     description="Backend for the comparative Agentic GraphRAG system.",
-    debug=settings.debug,
+    debug=False,
     lifespan=lifespan,
+)
+app.add_middleware(
+    RateLimitMiddleware,
+    max_requests=settings.rate_limit_requests_per_minute,
+    window_seconds=settings.rate_limit_window_seconds,
 )
 
 app.include_router(health_router)

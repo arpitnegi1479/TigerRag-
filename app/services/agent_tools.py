@@ -6,6 +6,7 @@ from app.llm.providers import get_embedding_provider
 from app.repositories.graph_repository import GraphRepository
 from app.repositories.postgres_repository import PostgresDocumentRepository
 from app.repositories.vector_repository import VectorRepository
+from app.services.evaluation_telemetry import evaluation_step
 from app.services.verification_service import VerificationService
 
 
@@ -20,7 +21,8 @@ class AgentToolRegistry:
 
     def search_documents(self, query: str, top_k: int = 5) -> list[dict[str, Any]]:
         embedding_provider = get_embedding_provider()
-        vector = embedding_provider.embed(query)
+        with evaluation_step("retrieval_embedding"):
+            vector = embedding_provider.embed(query)
         results = self.vector.search(embedding_provider.collection_name, vector, limit=top_k)
         terms = {term.lower() for term in query.split() if len(term) >= 3}
         if terms:

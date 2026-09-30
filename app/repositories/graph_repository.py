@@ -276,20 +276,78 @@ class GraphRepository:
                 ]
         return [item for item in self._memory_relationships if item.get("source") == entity_id or item.get("target") == entity_id]
 
-    def clear(self) -> None:
-        self._memory_nodes.clear()
-        self._memory_relationships.clear()
+    def delete_relationships_for_documents(self, document_ids: list[str]) -> int:
+        scoped_ids = list(dict.fromkeys(document_ids))
+        if not scoped_ids:
+            return 0
         if self.is_live:
             with self._driver.session() as session:
-                session.run("MATCH (n) DETACH DELETE n")
-            return
-        if self._driver is not None:
-            try:
-                self._driver.close()
-            except Exception:
-                pass
-            self._driver = None
-        self._connect()
+                record = session.run(
+                    """
+                    MATCH ()-[r:RELATES]->()
+                    WHERE r.source_document_id IN $document_ids
+                    WITH collect(r) AS relationships
+                    FOREACH (relationship IN relationships | DELETE relationship)
+                    RETURN size(relationships) AS deleted_count
+                    """,
+                    document_ids=scoped_ids,
+                ).single()
+                return int(record["deleted_count"])
+
+        retained = [
+            relationship
+            for relationship in self._memory_relationships
+            if relationship.get("source_document_id") not in scoped_ids
+        ]
+        deleted_count = len(self._memory_relationships) - len(retained)
+        self._memory_relationships = retained
+        return deleted_count
+
+    def delete_orphan_entities_for_documents(self, document_ids: list[str]) -> int:
+        scoped_ids = set(document_ids)
+        if not scoped_ids:
+            return 0
+
+        candidates = []
+        for entity in self.list_entities():
+            metadata = entity.get("metadata") or {}
+            if isinstance(metadata, str):
+                try:
+                    metadata = json.loads(metadata)
+                except json.JSONDecodeError:
+                    metadata = {}
+            if metadata.get("source_document_id") in scoped_ids:
+                candidates.append(entity["id"])
+
+        if self.is_live:
+            with self._driver.session() as session:
+                record = session.run(
+                    """
+                    UNWIND $entity_ids AS entity_id
+                    MATCH (e:Entity {id: entity_id})
+                    WHERE NOT (e)--()
+                    DELETE e
+                    RETURN count(*) AS deleted_count
+                    """,
+                    entity_ids=candidates,
+                ).single()
+                return int(record["deleted_count"])
+
+        connected_ids = {
+            entity_id
+            for relationship in self._memory_relationships
+            for entity_id in (relationship.get("source"), relationship.get("target"))
+        }
+        deleted_ids = [entity_id for entity_id in candidates if entity_id not in connected_ids]
+        for entity_id in deleted_ids:
+            self._memory_nodes.pop(entity_id, None)
+        return len(deleted_ids)
+
+    def clear(self) -> None:
+        if self.is_live:
+            raise RuntimeError("Refusing to clear a live Neo4j graph.")
+        self._memory_nodes.clear()
+        self._memory_relationships.clear()
 
     def list_entities(self) -> list[dict[str, Any]]:
         if self.is_live:
@@ -319,3 +377,45 @@ class GraphRepository:
                     )
                 ]
         return list(self._memory_relationships)
+
+    def list_annotated_relationships(self) -> list[dict[str, Any]]:
+        if self.is_live:
+            with self._driver.session() as session:
+                records = session.run(
+                    """
+                    MATCH (a:Entity)-[r:RELATES]->(b:Entity)
+                    RETURN a.canonical_name AS source,
+                           r.type AS type,
+                           b.canonical_name AS target,
+                           r.source_document_id AS source_document_id,
+                           r.source_chunk_id AS source_chunk_id,
+                           r.metadata AS metadata
+                    ORDER BY source_document_id, source, target
+                    """
+                )
+                relationships = []
+                for record in records:
+                    metadata = record["metadata"] or {}
+                    if isinstance(metadata, str):
+                        try:
+                            metadata = json.loads(metadata)
+                        except json.JSONDecodeError:
+                            metadata = {}
+                    if metadata.get("benchmark_annotation") is True:
+                        relationships.append(
+                            {
+                                "source": record["source"],
+                                "type": record["type"],
+                                "target": record["target"],
+                                "source_document_id": record["source_document_id"],
+                                "source_chunk_id": record["source_chunk_id"],
+                                "metadata": metadata,
+                            }
+                        )
+                return relationships
+
+        return [
+            relationship
+            for relationship in self._memory_relationships
+            if relationship.get("metadata", {}).get("benchmark_annotation") is True
+        ]

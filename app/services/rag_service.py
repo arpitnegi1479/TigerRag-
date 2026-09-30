@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from app.llm.gemini import GeminiProvider
-from app.llm.prompts import RAG_GROUNDED_PROMPT
+from app.llm.prompts import RAG_GROUNDED_PROMPT, escape_untrusted_content
 from app.llm.providers import get_embedding_provider
 from app.repositories.vector_repository import VectorRepository
 from app.schemas.api import Citation, EvidenceStatus, QueryMode, QueryResult, RetrievalStats
+from app.services.evaluation_telemetry import evaluation_step, record_fallback
 from app.services.verification_service import VerificationService
 
 
@@ -18,7 +19,8 @@ class RagService:
     def answer(self, query: str, top_k: int = 5) -> QueryResult:
         embedding_provider = get_embedding_provider()
         vector_repository = VectorRepository.get_default()
-        query_vector = embedding_provider.embed(query)
+        with evaluation_step("retrieval_embedding"):
+            query_vector = embedding_provider.embed(query)
         retrieved = vector_repository.search(embedding_provider.collection_name, query_vector=query_vector, limit=top_k)
 
         if not retrieved:
@@ -47,13 +49,16 @@ class RagService:
             f"[document_id={item.get('document_id')} chunk_id={item.get('chunk_id')} score={item.get('score', 0.0)}]\n{item.get('content', '')}"
             for item in retrieved
         )
-        prompt = RAG_GROUNDED_PROMPT.format(query=query, evidence=evidence)
+        prompt = RAG_GROUNDED_PROMPT.format(query=query, evidence=escape_untrusted_content(evidence))
         answer_text = "\n\n".join(item.get("content", "") for item in retrieved[:2])
         if self.provider.configured:
             try:
-                answer_text = self.provider.generate_text(prompt)
+                with evaluation_step("answer_generation"):
+                    answer_text = self.provider.generate_text(prompt)
             except Exception:
-                pass
+                record_fallback("answer_generation", "gemini_generation_failed")
+        else:
+            record_fallback("answer_generation", "gemini_not_configured")
 
         verification = self.verifier.verify_claim(answer_text, evidence)
         average_score = sum(max(0.0, min(1.0, float(item.get("score", 0.0)))) for item in retrieved) / len(retrieved)

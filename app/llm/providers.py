@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import math
+import time
 from abc import ABC, abstractmethod
 from typing import Any
+import uuid
 
 import httpx
 
 from app.core.config import settings
+from app.services.evaluation_telemetry import new_request_id, pace_gemini_request, record_fallback, record_gemini_request
 
 
 class BaseLLMProvider(ABC):
@@ -49,6 +52,7 @@ class DeterministicEmbeddingProvider(EmbeddingProvider):
         return "document_chunks_deterministic_384"
 
     def embed(self, text: str) -> list[float]:
+        record_fallback("retrieval_embedding", "deterministic_embedding_provider")
         seed = hashlib.sha256(text.encode("utf-8")).hexdigest()
         values: list[float] = []
         for idx in range(self.dimension):
@@ -77,20 +81,79 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
     def embed(self, text: str) -> list[float]:
         if not self.api_key:
             raise RuntimeError("Gemini embedding API key is not configured")
-        response = httpx.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:embedContent",
-            params={"key": self.api_key},
-            json={
-                "content": {"parts": [{"text": text}]},
-                "outputDimensionality": self.dimension,
-            },
-            timeout=60,
-        )
-        response.raise_for_status()
-        values = response.json()["embedding"]["values"]
-        if len(values) != self.dimension:
-            raise ValueError(f"Gemini returned {len(values)} dimensions, expected {self.dimension}")
-        return [float(value) for value in values]
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:embedContent"
+        request_id = new_request_id()
+        for attempt in range(1, 3):
+            pace_gemini_request()
+            started = time.monotonic()
+            response = None
+            try:
+                response = httpx.post(
+                    url,
+                    params={"key": self.api_key},
+                    json={
+                        "content": {"parts": [{"text": text}]},
+                        "outputDimensionality": self.dimension,
+                    },
+                    timeout=60,
+                )
+                if response.status_code == 429 or response.status_code >= 500:
+                    if attempt < 2:
+                        retry_after = response.headers.get("Retry-After")
+                        try:
+                            delay = float(retry_after) if retry_after else 1.0 * attempt
+                        except ValueError:
+                            delay = 1.0 * attempt
+                        delay = max(0.0, min(delay, 10.0))
+                        record_gemini_request(
+                            request_id=request_id,
+                            provider="embedding",
+                            attempt=attempt,
+                            status="failed",
+                            status_code=response.status_code,
+                            latency_ms=(time.monotonic() - started) * 1000,
+                            retry_wait_ms=delay * 1000,
+                        )
+                        time.sleep(delay)
+                        continue
+
+                response.raise_for_status()
+                payload = response.json()
+                values = payload["embedding"]["values"]
+                if len(values) != self.dimension:
+                    raise ValueError(f"Gemini returned {len(values)} dimensions, expected {self.dimension}")
+                usage_metadata = payload.get("usageMetadata")
+                record_gemini_request(
+                    request_id=request_id,
+                    provider="embedding",
+                    attempt=attempt,
+                    status="succeeded",
+                    status_code=response.status_code,
+                    latency_ms=(time.monotonic() - started) * 1000,
+                    usage=usage_metadata if isinstance(usage_metadata, dict) else None,
+                )
+                return [float(value) for value in values]
+            except httpx.HTTPStatusError as error:
+                record_gemini_request(
+                    request_id=request_id,
+                    provider="embedding",
+                    attempt=attempt,
+                    status="failed",
+                    status_code=error.response.status_code,
+                    latency_ms=(time.monotonic() - started) * 1000,
+                )
+                raise
+            except Exception:
+                record_gemini_request(
+                    request_id=request_id,
+                    provider="embedding",
+                    attempt=attempt,
+                    status="failed",
+                    status_code=response.status_code if response is not None else None,
+                    latency_ms=(time.monotonic() - started) * 1000,
+                )
+                raise
+        raise RuntimeError("Gemini embedding failed after bounded retry")
 
 
 class ResilientEmbeddingProvider(EmbeddingProvider):

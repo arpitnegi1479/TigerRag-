@@ -1,48 +1,38 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from __future__ import annotations
+
+from typing import Any
 
 
-class EvaluationService:
-    """Benchmark and evaluation service skeleton for fixed benchmark execution."""
-
-    def __init__(self):
-        self.dataset_version = "v1.0.0"
-
-    def build_benchmark(self) -> list[dict]:
-        return [
-            {
-                "id": "q1",
-                "category": "relationship",
-                "question": "What is the relationship between Entity A and Entity D?",
-                "expected_answer": "Entity A relates to Entity D through the known graph path.",
-                "required_entities": ["Entity A", "Entity D"],
-                "required_relationships": ["Entity A -> Entity B -> Entity D"],
-                "gold_sources": ["doc-3", "doc-5"],
-            },
-            {
-                "id": "q2",
-                "category": "multi-hop",
-                "question": "What evidence supports the link between Entity C and Entity D?",
-                "expected_answer": "The support is grounded in the graph path and source chunks.",
-                "required_entities": ["Entity C", "Entity D"],
-                "required_relationships": ["Entity C -> Entity D"],
-                "gold_sources": ["doc-5"],
-            },
-        ]
-
-    def run_benchmark(self) -> dict:
-        run_id = f"eval-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-        questions = self.build_benchmark()
-
-        return {
-            "run_id": run_id,
-            "dataset_version": self.dataset_version,
-            "status": "completed",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "questions": questions,
-            "summary": {
-                "total_questions": len(questions),
-                "question_types": sorted({q["category"] for q in questions}),
-            },
-        }
+def build_failure_analysis(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    failures = []
+    for result in results:
+        scores = result.get("scores", {})
+        correctness = scores.get("answer_correctness", {}).get("score")
+        retrieval = scores.get("retrieval", {})
+        faithfulness = scores.get("faithfulness", {}).get("score")
+        citation_accuracy = scores.get("citation_accuracy", {}).get("score")
+        reasons = []
+        if correctness is not None and correctness < 1:
+            reasons.append({"metric": "answer_correctness", "observed": correctness})
+        if retrieval.get("recall_at_k") is not None and retrieval["recall_at_k"] < 1:
+            reasons.append({"metric": "retrieval_recall_at_k", "observed": retrieval["recall_at_k"]})
+        if faithfulness is not None and faithfulness < 1:
+            reasons.append({"metric": "faithfulness", "observed": faithfulness})
+        if citation_accuracy is not None and citation_accuracy < 1:
+            reasons.append({"metric": "citation_accuracy", "observed": citation_accuracy})
+        if result.get("execution_quality") == "degraded":
+            reasons.append({"metric": "execution_quality", "observed": "degraded"})
+        if reasons:
+            failures.append(
+                {
+                    "question_id": result.get("question_id"),
+                    "category": result.get("category"),
+                    "mode": result.get("mode"),
+                    "answer": result.get("answer"),
+                    "evidence_status": result.get("evidence_status"),
+                    "reasons": reasons,
+                }
+            )
+    return failures

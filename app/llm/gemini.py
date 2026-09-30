@@ -6,6 +6,7 @@ from typing import Any
 import httpx
 
 from app.core.config import settings
+from app.services.evaluation_telemetry import new_request_id, pace_gemini_request, record_gemini_request
 
 
 class GeminiProvider:
@@ -33,14 +34,72 @@ class GeminiProvider:
             "generationConfig": generation_config,
         }
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
-        for attempt in range(2):
-            response = httpx.post(url, params={"key": self.api_key}, json=request, timeout=60)
-            if response.status_code == 429 and attempt == 0:
-                time.sleep(self.retry_delay_seconds)
-                continue
-            response.raise_for_status()
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"]
-        raise RuntimeError("Gemini generation failed after retry")
+        request_id = new_request_id()
+        max_attempts = 2
+        for attempt in range(1, max_attempts + 1):
+            pace_gemini_request()
+            started = time.monotonic()
+            response = None
+            try:
+                response = httpx.post(url, params={"key": self.api_key}, json=request, timeout=60)
+                status_code = response.status_code
+                if status_code == 429 or status_code >= 500:
+                    if attempt < max_attempts:
+                        retry_after = response.headers.get("Retry-After")
+                        try:
+                            delay = float(retry_after) if retry_after else self.retry_delay_seconds * attempt
+                        except ValueError:
+                            delay = self.retry_delay_seconds * attempt
+                        delay = max(0.0, min(delay, 10.0))
+                        elapsed = (time.monotonic() - started) * 1000
+                        record_gemini_request(
+                            request_id=request_id,
+                            provider="generation",
+                            attempt=attempt,
+                            status="failed",
+                            status_code=status_code,
+                            latency_ms=elapsed,
+                            retry_wait_ms=delay * 1000,
+                        )
+                        time.sleep(delay)
+                        continue
+
+                response.raise_for_status()
+                payload = response.json()
+                usage_metadata = payload.get("usageMetadata")
+                usage = usage_metadata if isinstance(usage_metadata, dict) else None
+                record_gemini_request(
+                    request_id=request_id,
+                    provider="generation",
+                    attempt=attempt,
+                    status="succeeded",
+                    status_code=status_code,
+                    latency_ms=(time.monotonic() - started) * 1000,
+                    usage=usage,
+                )
+                return payload["candidates"][0]["content"]["parts"][0]["text"]
+            except httpx.HTTPStatusError as error:
+                record_gemini_request(
+                    request_id=request_id,
+                    provider="generation",
+                    attempt=attempt,
+                    status="failed",
+                    status_code=error.response.status_code,
+                    latency_ms=(time.monotonic() - started) * 1000,
+                )
+                raise
+            except Exception:
+                if response is None:
+                    record_gemini_request(
+                        request_id=request_id,
+                        provider="generation",
+                        attempt=attempt,
+                        status="failed",
+                        status_code=None,
+                        latency_ms=(time.monotonic() - started) * 1000,
+                    )
+                raise
+        raise RuntimeError("Gemini generation failed after bounded retry")
 
     def generate_text(self, prompt: str) -> str:
         return self._generate(prompt)
